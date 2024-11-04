@@ -1,86 +1,90 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-const spriteSheet = document.getElementById('spriteSheet');
+const spriteSheet = new Image();
+spriteSheet.src = 'sprites.png';
+
 const player = {
-    x: 256,
-    y: 240,
+    x: 100,
+    y: 100,
     width: 32,
     height: 32,
-    spriteX: 0,
-    spriteY: 0
+    frameX: 0,
+    frameY: 0,
+    speed: 5,
+    moving: false,
+    health: 100,
 };
 
-const tileSize = 32;
-const tileMap = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-];
-
-const tiles = {
-    0: 'lightgrey', // Walkable path
-    1: 'darkgrey'   // Wall
+const enemy = {
+    x: 300,
+    y: 300,
+    width: 32,
+    height: 32,
+    frameX: 0,
+    frameY: 1,
+    speed: 1,
+    moving: true,
 };
 
-function drawTileMap() {
-    for (let row = 0; row < tileMap.length; row++) {
-        for (let col = 0; col < tileMap[row].length; col++) {
-            const tile = tileMap[row][col];
-            ctx.fillStyle = tiles[tile];
-            ctx.fillRect(col * tileSize, row * tileSize, tileSize, tileSize);
+function drawSprite(img, sX, sY, sW, sH, dX, dY, dW, dH) {
+    ctx.drawImage(img, sX, sY, sW, sH, dX, dY, dW, dH);
+}
+
+function detectCollision(player, enemy) {
+    return player.x < enemy.x + enemy.width &&
+           player.x + player.width > enemy.x &&
+           player.y < enemy.y + enemy.height &&
+           player.y + player.height > enemy.y;
+}
+
+function moveEnemy() {
+    if (enemy.x < player.x) enemy.x += enemy.speed;
+    if (enemy.x > player.x) enemy.x -= enemy.speed;
+    if (enemy.y < player.y) enemy.y += enemy.speed;
+    if (enemy.y > player.y) enemy.y -= enemy.speed;
+}
+
+function update() {
+    if (player.moving) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        moveEnemy();
+        if (detectCollision(player, enemy)) {
+            player.health -= 1; // Reduce health on collision
+            console.log("Player health: " + player.health);
         }
+        drawSprite(spriteSheet, player.frameX * player.width, player.frameY * player.height, player.width, player.height, player.x, player.y, player.width, player.height);
+        drawSprite(spriteSheet, enemy.frameX * enemy.width, enemy.frameY * enemy.height, enemy.width, enemy.height, enemy.x, enemy.y, enemy.width, enemy.height);
     }
+    requestAnimationFrame(update);
 }
 
-function drawSprite(img, imgX, imgY, imgWidth, imgHeight, canvasX, canvasY, canvasWidth, canvasHeight) {
-    ctx.drawImage(img, imgX, imgY, imgWidth, imgHeight, canvasX, canvasY, canvasWidth, canvasHeight);
-}
-
-function drawPlayer() {
-    drawSprite(spriteSheet, player.spriteX, player.spriteY, player.width, player.height, player.x, player.y, player.width, player.height);
-}
-
-function clearCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
-
-function updatePlayerPosition(direction) {
-    const speed = 4;
-    let newX = player.x;
-    let newY = player.y;
-
-    switch (direction) {
-        case 'ArrowUp': newY -= speed; player.spriteY = -5; player.spriteX = 175; break; 
-        case 'ArrowDown': newY += speed; player.spriteY = -5; player.spriteX = 115; break; 
-        case 'ArrowLeft': newX -= speed; player.spriteY = -5; player.spriteX = 150; break; 
-        case 'ArrowRight': newX += speed; player.spriteY = -5; player.spriteX = 200; break;
-    }
-
-    const col = Math.floor(newX / tileSize);
-    const row = Math.floor(newY / tileSize);
-    if (tileMap[row][col] === 0) {
-        player.x = newX;
-        player.y = newY;
-    }
-}
-
-function gameLoop() {
-    clearCanvas();
-    drawTileMap();
-    drawPlayer();
-    requestAnimationFrame(gameLoop);
-}
-
-document.addEventListener('keydown', (event) => {
-    switch (event.key) {
-        case 'ArrowUp': updatePlayerPosition('up'); break;
-        case 'ArrowDown': updatePlayerPosition('down'); break;
-        case 'ArrowLeft': updatePlayerPosition('left'); break;
-        case 'ArrowRight': updatePlayerPosition('right'); break;
+window.addEventListener('keydown', function(e) {
+    player.moving = true;
+    switch (e.key) {
+        case 'ArrowUp':
+            player.y -= player.speed;
+            player.frameY = 3;
+            break;
+        case 'ArrowDown':
+            player.y += player.speed;
+            player.frameY = 0;
+            break;
+        case 'ArrowLeft':
+            player.x -= player.speed;
+            player.frameY = 1;
+            break;
+        case 'ArrowRight':
+            player.x += player.speed;
+            player.frameY = 2;
+            break;
     }
 });
 
-gameLoop();
+window.addEventListener('keyup', function(e) {
+    player.moving = false;
+});
+
+spriteSheet.onload = function() {
+    update();
+};
