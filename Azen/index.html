@@ -1,20 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zelda Game</title>
+    <title>Azen</title>
     <style>
         canvas {
-            border: 1px solid black;
-            background-color: #f0f0f0;
+            background: url('background.png') no-repeat center center;
+            background-size: cover;
+            display: block;
+            margin: 0 auto;
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="512" height="480"></canvas>
-    <img id="spriteSheet" src="sprites.png" style="display:none;">
-    <img id="backgroundImage" src="background.png" style="display:none;">
-    <script src="game.js"></script>
+    <canvas id="gameCanvas" width="1520" height="720"></canvas>
+    <script src="game.js"></script> <!-- Assuming your JavaScript code is in a separate file named game.js -->
 </body>
 </html>
